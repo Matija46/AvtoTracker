@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:core';
 
 import 'package:avto_tracker/google_services.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+//import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,23 +11,23 @@ import 'main.dart';
 
 
 
-Future<void> handleBackgroundMessage(RemoteMessage message) async{
+/*Future<void> handleBackgroundMessage(RemoteMessage message) async{
   print("Title: ${message.notification?.title}");
   print("Body: ${message.notification?.body}");
   print("Payload: ${message.data}");
 
-}
+}*/
 
 class ApiService {
 
-  final _firebaseMessaging = FirebaseMessaging.instance;
+  /*final _firebaseMessaging = FirebaseMessaging.instance;
 
   Future<void> initNotifications() async {
     await _firebaseMessaging.requestPermission();
     final fCMToken = await _firebaseMessaging.getToken();
     print("notification token $fCMToken");
     FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
-  }
+  }*/
 
   Future<List<Oglas>?> fetchOglasi(String id) async {
     try {
