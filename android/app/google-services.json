@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "269797533471",
+    "project_id": "avtotracker-d4ed2",
+    "storage_bucket": "avtotracker-d4ed2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269797533471:android:a2896f3da1f8f04fd3322a",
+        "android_client_info": {
+          "package_name": "com.apptrackers.avto_tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "269797533471-gjp0bo0fij7ccskp1qg92ip3t404do8j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQ8PIewA4aJje8k9viCtVcD1hDv8nCET4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "269797533471-gjp0bo0fij7ccskp1qg92ip3t404do8j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
