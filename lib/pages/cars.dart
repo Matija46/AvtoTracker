@@ -5,6 +5,8 @@ import 'package:avto_tracker/main.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/Oglas.dart';
+
 class CarsPage extends StatefulWidget {
   const CarsPage({super.key});
 
@@ -34,8 +36,8 @@ class CarsPageState extends State<CarsPage> {
           oglasi = fetchedOglasi;
           print("count: ${oglasi.length}");
           for(var oglas in oglasi){
-            oglas.izpisi();
-            print("");
+            //oglas.izpisi();
+            //print("");
           }
         });
       }
@@ -46,6 +48,7 @@ class CarsPageState extends State<CarsPage> {
         setState(() {
           loading = true;
           _userId = data.session?.user.id;
+          //ApiService().insertUser(_userId, ApiService().fCMToken, data.session?.user.email);
         });
       }
       if(_userId != null) {
@@ -173,9 +176,6 @@ class CarsPageState extends State<CarsPage> {
                         ),
                       ],
                     ),
-                    // Car Image
-
-                    // Car Details
                     Padding(
                       padding: EdgeInsets.all(15*multiplier),
                       child: Column(

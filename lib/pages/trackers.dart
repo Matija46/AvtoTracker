@@ -2,7 +2,11 @@ import 'package:avto_tracker/colors.dart';
 import 'package:avto_tracker/google_services.dart';
 import 'package:avto_tracker/main.dart';
 import 'package:avto_tracker/pages/add_tracker.dart';
+import 'package:avto_tracker/pages/tracker_details.dart';
 import 'package:flutter/material.dart';
+
+import '../api_service.dart';
+import '../models/Tracker.dart';
 
 class TrackersPage extends StatefulWidget {
   const TrackersPage({super.key});
@@ -14,8 +18,23 @@ class TrackersPage extends StatefulWidget {
 class TrackersPageState extends State<TrackersPage> {
 
   String? _userId;
+  List<Tracker> trackers = [];
+  bool loading = false;
   final GoogleServices _googleService = GoogleServices();
 
+  Future<void> fetchTrackers() async {
+    final fetchedOglasi = await ApiService().fetchTrackers(_userId!);
+    if (fetchedOglasi != null) {
+      setState(() {
+        trackers = fetchedOglasi;
+        print("count: ${trackers.length}");
+        for(var tracker in trackers){
+          tracker.izpisi();
+          print("");
+        }
+      });
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -24,14 +43,23 @@ class TrackersPageState extends State<TrackersPage> {
       _userId = _googleService.userId;
     });
 
-    supabase.auth.onAuthStateChange.listen((data) {
-      setState(() {
-        _userId = data.session?.user.id;
-        print("userID :: ${_userId!}");
-
-      });
+    supabase.auth.onAuthStateChange.listen((data) async {
+      if(mounted) {
+        setState(() {
+          loading = true;
+          _userId = data.session?.user.id;
+          //ApiService().insertUser(_userId, ApiService().fCMToken, data.session?.user.email);
+        });
+      }
+      if(_userId != null) {
+        await fetchTrackers();
+      }
+      if(mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
     });
-
   }
   @override
   Widget build(BuildContext context) {
@@ -57,16 +85,88 @@ class TrackersPageState extends State<TrackersPage> {
         child: _userId != null
             ? Stack(
           children: [
+            ListView.builder(
+              padding: EdgeInsets.all(16.0 * multiplier),
+              itemCount: trackers.length,
+              itemBuilder: (context, index) {
+                final tracker = trackers[index];
+                return Card(
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0 * multiplier),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0 * multiplier),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tracker.brand ?? '',
+                              style: TextStyle(
+                                fontSize: 18 * multiplier,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 8 * multiplier),
+                            Text(
+                              tracker.model == null ? 'Vsi modeli' : tracker.model == '' ? 'Vsi modeli' : tracker.model!,
+                              style: TextStyle(
+                                fontSize: 16 * multiplier,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TrackerDetails(tracker: tracker),
+                              ),
+                            );
+                            if (result == true) {
+                              await fetchTrackers();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Barve().primaryColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0 * multiplier),
+                            ),
+                          ),
+                          child: Text(
+                            'Več',
+                            style: TextStyle(
+                              fontSize: 16 * multiplier,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
             Align(
               alignment: Alignment.bottomRight,
               child: Padding(
                 padding: EdgeInsets.all(16.0*multiplier),
                 child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    final result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const AddTrackerPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const AddTrackerPage(),
+                      ),
                     );
+                    if (result == true) {
+                      await fetchTrackers();
+                    }
                   },
                   child: Container(
                     width: 70.0*multiplier,
@@ -95,11 +195,6 @@ class TrackersPageState extends State<TrackersPage> {
                 ),
               ),
             ),
-            Column(
-              children: [
-
-              ],
-            )
           ],
         )
         : Column(

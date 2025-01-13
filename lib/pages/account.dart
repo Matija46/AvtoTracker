@@ -1,3 +1,4 @@
+import 'package:avto_tracker/api_service.dart';
 import 'package:avto_tracker/colors.dart';
 import 'package:avto_tracker/google_services.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,7 @@ class AccountPageState extends State<AccountPage> {
       setState(() {
         _userId = data.session?.user.id;
         email = data.session?.user.email;
+        //ApiService().insertUser(_userId, ApiService().fCMToken, email);
       });
     });
   }

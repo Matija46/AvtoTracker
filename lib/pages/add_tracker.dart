@@ -71,19 +71,19 @@ class AddTrackerPageState extends State<AddTrackerPage> {
 
   @override
   Widget build(BuildContext context) {
-    double multiplier = MediaQuery.sizeOf(context).width/ 411;
+    double multiplier = MediaQuery.sizeOf(context).width / 411;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white, size: 40*multiplier),
+          icon: Icon(Icons.arrow_back, color: Colors.white, size: 40 * multiplier),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Dodaj Sledilnik',
           style: TextStyle(
-            fontSize: 24*multiplier,
+            fontSize: 24 * multiplier,
             fontFamily: 'Roboto',
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -102,10 +102,14 @@ class AddTrackerPageState extends State<AddTrackerPage> {
                 color: Colors.black.withOpacity(0.3),
               ),
             ),
+          if (addingTracker)
+          Center(
+            child: CircularProgressIndicator(color: Barve().primaryColor),
+          ),
           AbsorbPointer(
             absorbing: addingTracker,
             child: Padding(
-              padding: EdgeInsets.all(16.0*multiplier),
+              padding: EdgeInsets.all(16.0 * multiplier),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -114,77 +118,55 @@ class AddTrackerPageState extends State<AddTrackerPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildDropdown('Znamka', brands, (value) => setState(() => selectedBrand = value)),
-                          _buildModelInput('Model', (value) => setState(() => enteredModel = value)),
-                          _buildTwoPickers('Cena od', prices, (value) => setState(() => selectedMinPrice = value),
-                              'Cena do', prices, (value) => setState(() => selectedMaxPrice = value)),
-                          _buildTwoPickers('Letnik od', years, (value) => setState(() => selectedMinYear = value),
-                              'Letnik do', years, (value) => setState(() => selectedMaxYear = value)),
-                          _buildTwoPickers('Prevoženi KM', mileages, (value) => setState(() => selectedMaxMileage = value),
-                              'Gorivo', fuelTypes, (value) => setState(() => selectedFuelType = value)),
+                          _manualDropdown('Znamka', brands, selectedBrand, (value) => setState(() => selectedBrand = value)),
+                          _manualTextInput('Model', 'Vnesite model', enteredModel, (value) => setState(() => enteredModel = value)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: _manualDropdown('Cena od', prices, selectedMinPrice, (value) => setState(() => selectedMinPrice = value)),
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: _manualDropdown('Cena do', prices, selectedMaxPrice, (value) => setState(() => selectedMaxPrice = value)),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: _manualDropdown('Letnik od', years, selectedMinYear, (value) => setState(() => selectedMinYear = value)),
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: _manualDropdown('Letnik do', years, selectedMaxYear, (value) => setState(() => selectedMaxYear = value)),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: _manualDropdown('Prevoženi KM', mileages, selectedMaxMileage, (value) => setState(() => selectedMaxMileage = value)),
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: _manualDropdown('Gorivo', fuelTypes, selectedFuelType, (value) => setState(() => selectedFuelType = value)),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  SizedBox(height: 20*multiplier),
+                  SizedBox(height: 20 * multiplier),
                   ElevatedButton(
-                    onPressed: () async {
-                      setState(() {
-                        addingTracker = true;
-                      });
-                      if(selectedBrand == null || selectedBrand == ''){
-                        Fluttertoast.showToast(
-                          msg: "Izberite znamko!",
-                          toastLength: Toast.LENGTH_LONG,
-                          gravity: ToastGravity.BOTTOM,
-                          backgroundColor: Barve().errorColor,
-                          textColor: Colors.white,
-                          fontSize: 16.0*multiplier,
-                        );
-                      }
-                      else {
-                        bool response = await ApiService().addTracker(
-                            selectedBrand,
-                            enteredModel,
-                            selectedMinPrice,
-                            selectedMaxPrice,
-                            selectedMinYear,
-                            selectedMaxYear,
-                            selectedFuelType,
-                            selectedMaxMileage);
-                        if (response) {
-                          Fluttertoast.showToast(
-                            msg: "Sledilnik uspešno dodan!",
-                            toastLength: Toast.LENGTH_LONG,
-                            gravity: ToastGravity.BOTTOM,
-                            backgroundColor: Barve().okColor,
-                            textColor: Colors.white,
-                            fontSize: 16.0*multiplier,
-                          );
-                          Tracker tracker = new Tracker();
-
-                          Navigator.of(context).pop();
-                        }
-                        else {
-                          Fluttertoast.showToast(
-                            msg: "Dodajanje sledilnika ni uspelo!",
-                            toastLength: Toast.LENGTH_LONG,
-                            gravity: ToastGravity.BOTTOM,
-                            backgroundColor: Colors.red,
-                            textColor: Colors.white,
-                            fontSize: 16.0*multiplier,
-                          );
-                        }
-                      }
-                      setState(() {
-                        addingTracker = false;
-                      });
-
-                    },
+                    onPressed: _saveTracker,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10*multiplier),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ).copyWith(
                       backgroundColor: WidgetStateProperty.resolveWith((states) => null),
@@ -200,14 +182,14 @@ class AddTrackerPageState extends State<AddTrackerPage> {
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
-                        borderRadius: BorderRadius.circular(10*multiplier),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 16*multiplier),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       alignment: Alignment.center,
-                      child: Text(
+                      child: const Text(
                         'Shrani Sledilnik',
                         style: TextStyle(
-                          fontSize: 18*multiplier,
+                          fontSize: 18,
                           color: Colors.white,
                         ),
                       ),
@@ -217,150 +199,108 @@ class AddTrackerPageState extends State<AddTrackerPage> {
               ),
             ),
           ),
-          if (addingTracker)
-            Center(
+        ],
+      ),
+    );
+  }
+
+  Widget _manualDropdown(String label, List<String> items, String? selectedValue, ValueChanged<String?> onChanged) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.45,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 16)),
+            GestureDetector(
+              onTap: () => _showPicker(context, items, onChanged),
               child: Container(
-                padding: EdgeInsets.all(16.0*multiplier),
+                width: MediaQuery.of(context).size.width * 0.45,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12.0*multiplier),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 10.0*multiplier,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Barve().primaryColor),
-                    ),
-                    SizedBox(height: 16*multiplier),
-                    Text(
-                      'Dodajam sledilnik... Prosimo, počakajte.',
-                      style: TextStyle(fontSize: 16*multiplier, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                child: Text(
+                  selectedValue ?? 'Izberite',
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDropdown(String label, List<String> items, ValueChanged<String?> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          GestureDetector(
-            onTap: () => _showPicker(context, items, (value) => onChanged(value)),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                items.contains(selectedBrand) ? selectedBrand! : 'Izberite',
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModelInput(String label, ValueChanged<String?> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          TextField(
-            onChanged: onChanged,
-            decoration: InputDecoration(
-              hintText: 'Vnesite model',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTwoPickers(String label1, List<String> items1, ValueChanged<String?> onChanged1,
-      String label2, List<String> items2, ValueChanged<String?> onChanged2) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.45,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label1, style: const TextStyle(fontSize: 16)),
-                GestureDetector(
-                  onTap: () => _showPicker(context, items1, (value) => onChanged1(value)),
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.45,
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      (label1 == 'Cena od' ? selectedMinPrice : selectedMaxPrice) ?? 'Izberite',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 0.45,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label2, style: const TextStyle(fontSize: 16)),
-                GestureDetector(
-                  onTap: () => _showPicker(context, items2, (value) => onChanged2(value)),
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.45,
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      (label2 == 'Letnik do' ? selectedMaxYear : selectedFuelType) ?? 'Izberite',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
+      ),
     );
+  }
+
+  Widget _manualTextInput(String label, String hint, String? value, ValueChanged<String?> onChanged) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.45,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: TextStyle(fontSize: 16)),
+            TextField(
+              onChanged: onChanged,
+              decoration: InputDecoration(
+                hintText: hint,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _saveTracker() async {
+    setState(() => addingTracker = true);
+    if (selectedBrand == null || selectedBrand!.isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Izberite znamko!",
+        toastLength: Toast.LENGTH_LONG,
+        backgroundColor: Barve().errorColor,
+        textColor: Colors.white,
+      );
+    } else {
+      bool response = await ApiService().addTracker(
+        _userId!,
+        selectedBrand,
+        enteredModel,
+        selectedMinPrice,
+        selectedMaxPrice,
+        selectedMinYear,
+        selectedMaxYear,
+        selectedFuelType,
+        selectedMaxMileage,
+        ApiService().fCMToken,
+      );
+      await ApiService().insertTracker(
+          _userId!,
+          selectedBrand,
+          enteredModel,
+          selectedMinPrice,
+          selectedMaxPrice,
+          selectedMinYear,
+          selectedMaxYear,
+          selectedFuelType,
+          selectedMaxMileage
+      );
+      if (response) {
+        Navigator.of(context).pop(true);
+      } else {
+        Fluttertoast.showToast(
+          msg: "Dodajanje sledilnika ni uspelo!",
+          toastLength: Toast.LENGTH_LONG,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    }
+    setState(() => addingTracker = false);
   }
 
   void _showPicker(BuildContext context, List<String> items, ValueChanged<String?> onSelected) {

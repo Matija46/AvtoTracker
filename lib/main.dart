@@ -14,8 +14,8 @@ Future<void> main() async {
     url: 'https://oyprygmqmtgdysbopzcn.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95cHJ5Z21xbXRnZHlzYm9wemNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY2MDk2MDksImV4cCI6MjA1MjE4NTYwOX0.vChmiiTsApZKRBEJ72lNncLQ0CSeo29fyw1x81KisjE',
   );
-  //await Firebase.initializeApp();
-  //await ApiService().initNotifications();
+  await Firebase.initializeApp();
+  await ApiService().initNotifications();
   runApp(const MyApp());
 }
 
