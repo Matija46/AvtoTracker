@@ -57,15 +57,18 @@ class AddTrackerPageState extends State<AddTrackerPage> {
   @override
   void initState() {
     super.initState();
-
-    setState(() {
-      _userId = _googleService.userId;
-    });
+    if(mounted) {
+      setState(() {
+        _userId = _googleService.userId;
+      });
+    }
 
     supabase.auth.onAuthStateChange.listen((data) {
-      setState(() {
-        _userId = data.session?.user.id;
-      });
+      if(mounted) {
+        setState(() {
+          _userId = data.session?.user.id;
+        });
+      }
     });
   }
 
@@ -266,19 +269,8 @@ class AddTrackerPageState extends State<AddTrackerPage> {
         textColor: Colors.white,
       );
     } else {
-      bool response = await ApiService().addTracker(
-        _userId!,
-        selectedBrand,
-        enteredModel,
-        selectedMinPrice,
-        selectedMaxPrice,
-        selectedMinYear,
-        selectedMaxYear,
-        selectedFuelType,
-        selectedMaxMileage,
-        ApiService().fCMToken,
-      );
-      await ApiService().insertTracker(
+
+      dynamic response1 = await ApiService().insertTracker(
           _userId!,
           selectedBrand,
           enteredModel,
@@ -289,6 +281,28 @@ class AddTrackerPageState extends State<AddTrackerPage> {
           selectedFuelType,
           selectedMaxMileage
       );
+      print("responseeeeeeeeeee ::: $response1");
+      String trackerid = response1[0]['id'];
+      print("TRACKER IDDD ::: $trackerid");
+      String? notTok = await ApiService().initNotifications();
+      print("nottok: $notTok");
+      bool response = await ApiService().addTracker(
+        _userId!,
+        trackerid,
+        selectedBrand,
+        enteredModel,
+        selectedMinPrice,
+        selectedMaxPrice,
+        selectedMinYear,
+        selectedMaxYear,
+        selectedFuelType,
+        selectedMaxMileage,
+        notTok,
+      );
+
+
+
+
       if (response) {
         Navigator.of(context).pop(true);
       } else {
@@ -300,7 +314,9 @@ class AddTrackerPageState extends State<AddTrackerPage> {
         );
       }
     }
-    setState(() => addingTracker = false);
+    if(mounted) {
+      setState(() => addingTracker = false);
+    }
   }
 
   void _showPicker(BuildContext context, List<String> items, ValueChanged<String?> onSelected) {

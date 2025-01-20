@@ -1,3 +1,4 @@
+import 'package:avto_tracker/api_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,6 +27,8 @@ class GoogleServices {
   Future<AuthResponse> googleSignIn() async {
     final googleUser = await _googleSignIn.signIn();
 
+
+
     if (googleUser == null) {
       throw 'Sign-in was cancelled or failed.';
     }
@@ -49,6 +52,13 @@ class GoogleServices {
 
     _userId = authResponse.session?.user?.id;
     _email = authResponse.session?.user?.email;
+
+    String? nottok = await ApiService().initNotifications();
+
+    if(nottok != null && _userId != null && _email != null){
+      ApiService().createUser(_userId!, nottok, _email!);
+    }
+
 
     return authResponse;
   }

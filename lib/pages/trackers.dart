@@ -25,23 +25,27 @@ class TrackersPageState extends State<TrackersPage> {
   Future<void> fetchTrackers() async {
     final fetchedOglasi = await ApiService().fetchTrackers(_userId!);
     if (fetchedOglasi != null) {
-      setState(() {
-        trackers = fetchedOglasi;
-        print("count: ${trackers.length}");
-        for(var tracker in trackers){
-          tracker.izpisi();
-          print("");
-        }
-      });
+      if(mounted) {
+        setState(() {
+          trackers = fetchedOglasi;
+          print("count: ${trackers.length}");
+          for (var tracker in trackers) {
+            tracker.izpisi();
+            print("");
+          }
+        });
+      }
     }
   }
   @override
   void initState() {
     super.initState();
 
-    setState(() {
-      _userId = _googleService.userId;
-    });
+    if(mounted) {
+      setState(() {
+        _userId = _googleService.userId;
+      });
+    }
 
     supabase.auth.onAuthStateChange.listen((data) async {
       if(mounted) {
@@ -82,9 +86,23 @@ class TrackersPageState extends State<TrackersPage> {
         shadowColor: Barve().primaryColor.withOpacity(0.6),
       ),
       body: Center(
-        child: _userId != null
-            ? Stack(
+        child: _userId != null ?
+        Stack(
           children: [
+            if(trackers.isEmpty)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(15.0*multiplier),
+                child: Text(
+                  "Trenutno nimate nobenih sledilnikov",
+                  style: TextStyle(
+                    fontSize: 23*multiplier,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
             ListView.builder(
               padding: EdgeInsets.all(16.0 * multiplier),
               itemCount: trackers.length,

@@ -25,11 +25,12 @@ class ApiService {
   final _firebaseMessaging = FirebaseMessaging.instance;
 
   String? fCMToken;
-  Future<void> initNotifications() async {
+  Future<String?> initNotifications() async {
     await _firebaseMessaging.requestPermission();
     fCMToken = await _firebaseMessaging.getToken();
     print("notification token $fCMToken");
     FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
+    return fCMToken;
   }
 
   /*Future<bool> insertUser(String? id, String? notificationToken, String? email) async {
@@ -61,11 +62,27 @@ class ApiService {
       final List<dynamic> response = await supabase
           .from('oglasi')
           .select()
-          .eq('user_id', id);
+          .eq('user_id', id)
+          .order('created_at', ascending: false);
       print(response);
       return response.map((item) => Oglas.fromJson(item as Map<String, dynamic>)).toList();
     } catch (e) {
       print('Error fetching oglasi: $e');
+      return null;
+    }
+  }
+  Future<List<Oglas>?> searchOglasi(String id, String searchString) async {
+    try {
+      final List<dynamic> response = await supabase
+          .from('oglasi')
+          .select()
+          .eq('user_id', id)
+          .ilike('name', '%$searchString%')
+          .order('created_at', ascending: false);
+      print(response);
+      return response.map((item) => Oglas.fromJson(item as Map<String, dynamic>)).toList();
+    } catch (e) {
+      print('Error searching oglasi: $e');
       return null;
     }
   }
@@ -83,7 +100,7 @@ class ApiService {
       return null;
     }
   }
-  Future<bool> insertTracker(String userID, String? znamka, String? model, String? cenaMin, String? cenaMax, String? letnikMin, String? letnikMax, String? gorivo, String? kilometriMax) async {
+  Future<dynamic> insertTracker(String userID, String? znamka, String? model, String? cenaMin, String? cenaMax, String? letnikMin, String? letnikMax, String? gorivo, String? kilometriMax) async {
     print("inserting!!!!!!!!!!!!!!!!!");
     try {
       final trackerData = {
@@ -98,21 +115,44 @@ class ApiService {
         'kilometriMax': kilometriMax ?? '',
       };
 
-      final response = await supabase.from('Trackers').insert(trackerData);
-
-      if (response.error == null) {
-        print('Tracker successfully added: ${response.data}');
-        return true;
-      } else {
+      final response = await supabase.from('Trackers').insert(trackerData).select();
+      //return response;
+      //if (response.error == null) {
+        print('Tracker successfully added: ${response}');
+        return response;
+      /*} else {
         print('Failed to add tracker: ${response.error?.message}');
         return false;
-      }
+      }*/
     } catch (e) {
       print('Error adding tracker: $e');
       return false;
     }
   }
+  Future<dynamic> createUser(String userID, String nottok, String mail) async {
+    try {
+      final trackerData = {
+        'id': userID,
+        'notification_token': nottok,
+        'email': mail
+      };
+
+      final response = await supabase.from('Profiles').insert(trackerData).select();
+      //return response;
+      //if (response.error == null) {
+      print('User successfully added: ${response}');
+      return response;
+      /*} else {
+        print('Failed to add tracker: ${response.error?.message}');
+        return false;
+      }*/
+    } catch (e) {
+      print('Error adding user: $e');
+      return false;
+    }
+  }
   Future<bool> deleteTracker(String id) async {
+    await removeTrackers(id);
     print("deleting tracker with id: $id");
     try {
       final response = await supabase
@@ -131,10 +171,31 @@ class ApiService {
       return true;
     }
   }
-  Future<bool> addTracker(String id, String? znamka, String? model, String? cenaMin, String? cenaMax, String? letnikMin, String? letnikMax, String? gorivo, String? prevozeniMax, String? notificationToken) async {
-    print(" $znamka, $model, $cenaMin, $cenaMax, $letnikMin, $letnikMax, $gorivo, $prevozeniMax");
-    String baseUrl = 'https://avtotracker-fcdtewhqgkajhteq.northeurope-01.azurewebsites.net/add-scraper?userID=$id&znamka=$znamka&notificationToken=$notificationToken';
+  Future<bool> removeTrackers(String id) async {
+    String baseUrl = 'https://avtotracker-fcdtewhqgkajhteq.northeurope-01.azurewebsites.net/delete-tracker?trackerID=$id';
 
+    final url = Uri.parse(baseUrl);
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Scraper Response: $data');
+        return true;
+      } else {
+        print('Failed to call scraper. Status code: ${response.statusCode}');
+        return true;
+      }
+    } catch (e) {
+      print('Error removing scraper: $e');
+      return true;
+    }
+  }
+
+  Future<bool> addTracker(String id, String trackerID, String? znamka, String? model, String? cenaMin, String? cenaMax, String? letnikMin, String? letnikMax, String? gorivo, String? prevozeniMax, String? notificationToken) async {
+    print(" $znamka, $model, $cenaMin, $cenaMax, $letnikMin, $letnikMax, $gorivo, $prevozeniMax");
+    String baseUrl = 'https://avtotracker-fcdtewhqgkajhteq.northeurope-01.azurewebsites.net/add-scraper?userID=$id&znamka=$znamka&trackerID=$trackerID&notificationToken=$notificationToken';
+    print(baseUrl);
     if(model != null) {
       baseUrl += "&model=$model";
     }

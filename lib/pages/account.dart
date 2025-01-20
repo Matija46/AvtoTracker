@@ -20,18 +20,21 @@ class AccountPageState extends State<AccountPage> {
   @override
   void initState() {
     super.initState();
-
-    setState(() {
-      _userId = _googleService.userId;
-      email = _googleService.email;
-    });
+    if(mounted) {
+      setState(() {
+        _userId = _googleService.userId;
+        email = _googleService.email;
+      });
+    }
 
     supabase.auth.onAuthStateChange.listen((data) {
-      setState(() {
-        _userId = data.session?.user.id;
-        email = data.session?.user.email;
-        //ApiService().insertUser(_userId, ApiService().fCMToken, email);
-      });
+      if(mounted) {
+        setState(() {
+          _userId = data.session?.user.id;
+          email = data.session?.user.email;
+          //ApiService().insertUser(_userId, ApiService().fCMToken, email);
+        });
+      }
     });
   }
 
